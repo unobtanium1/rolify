@@ -15,17 +15,33 @@ module Rolify
     include Role
     extend Dynamic if Rolify.dynamic_shortcuts
 
+    # patch to fix problem with rolifying deeply nested modulized class code (just pass in class instead of string/constantize)
     options.reverse_merge!({:role_cname => 'Role'})
-    self.role_cname = options[:role_cname]
-    self.role_table_name = self.role_cname.tableize.gsub(/\//, "_")
 
-    default_join_table = "#{self.to_s.tableize.gsub(/\//, "_")}_#{self.role_table_name}"
-    options.reverse_merge!({:role_join_table_name => default_join_table})
-    self.role_join_table_name = options[:role_join_table_name]
+    if options[:role_cname].instance_of? Class
+      self.role_cname = options[:role_cname].name
+      self.role_table_name = options[:role_cname].table_name
 
-    rolify_options = { :class_name => options[:role_cname].camelize }
-    rolify_options.merge!({ :join_table => self.role_join_table_name }) if Rolify.orm == "active_record"
-    rolify_options.merge!(options.reject{ |k,v| ![ :before_add, :after_add, :before_remove, :after_remove, :inverse_of ].include? k.to_sym })
+      default_join_table = "#{self.table_name}_#{self.role_table_name}"
+      options.reverse_merge!({:role_join_table_name => default_join_table})
+      self.role_join_table_name = options[:role_join_table_name]
+
+      rolify_options = { :class_name => self.role_cname }
+      rolify_options.merge!({ :join_table => self.role_join_table_name }) if Rolify.orm == "active_record"
+      rolify_options.merge!(options.reject{ |k,v| ![ :before_add, :after_add, :before_remove, :after_remove, :inverse_of ].include? k.to_sym })
+    else
+      #old rolify
+      self.role_cname = options[:role_cname]
+      self.role_table_name = self.role_cname.tableize.gsub(/\//, "_")
+
+      default_join_table = "#{self.to_s.tableize.gsub(/\//, "_")}_#{self.role_table_name}"
+      options.reverse_merge!({:role_join_table_name => default_join_table})
+      self.role_join_table_name = options[:role_join_table_name]
+
+      rolify_options = { :class_name => options[:role_cname].camelize }
+      rolify_options.merge!({ :join_table => self.role_join_table_name }) if Rolify.orm == "active_record"
+      rolify_options.merge!(options.reject{ |k,v| ![ :before_add, :after_add, :before_remove, :after_remove, :inverse_of ].include? k.to_sym })
+    end
 
     has_and_belongs_to_many :roles, **rolify_options
 
