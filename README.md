@@ -1,3 +1,35 @@
+change:
+
+use this instead of scopify (its what scopify does)
+
+```ruby
+    #scopify 
+    # https://github.com/RolifyCommunity/rolify/issues/156  missing railties (scopify does this code directly)
+    require "rolify/adapters/#{Rolify.orm}/scopes.rb"
+    extend Rolify::Adapter::Scopes
+```
+use resourcify as-is
+
+```ruby
+    extend Rolify; resourcify
+```
+
+use 
+
+
+```ruby
+    extend Rolify 
+    rolify role_cname: SOME::MODULE::PATH::Role,  :before_add => :before_role_add #before_add, after_add, before_remove, after_remove
+    def before_role_add(role); end
+
+    after_create :assign_default_role, if: :new_record?
+    def assign_default_role
+      self.add_role(:newuser) if self.roles.blank?
+    end
+```
+
+
+
 # rolify [![Gem Version](https://badge.fury.io/rb/rolify.svg)](http://badge.fury.io/rb/rolify) [![build status](https://travis-ci.org/RolifyCommunity/rolify.svg)](http://travis-ci.org/RolifyCommunity/rolify) [![Code Climate](https://codeclimate.com/github/RolifyCommunity/rolify.svg)](https://codeclimate.com/github/RolifyCommunity/rolify) [![Coverage Status](https://coveralls.io/repos/RolifyCommunity/rolify/badge.svg?branch=master&service=github)](https://coveralls.io/github/RolifyCommunity/rolify?branch=master)
 
 Very simple Roles library without any authorization enforcement supporting scope on resource object.
